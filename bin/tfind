@@ -1,0 +1,98 @@
+#!/usr/bin/env perl
+
+# ABSTRACT: command line file finding utility that understands TPath
+
+# PODNAME: tfind
+
+=head1 SYNOPSIS
+
+  > tfind //@f[@uid = @me]       # all the current user's files in the current directory
+  /home/fred/this.txt
+  /home/fred/that.php
+  /home/fred/the/other/file.c
+  ...
+  > tfind //~\.txt$~             # all files with the .txt extension
+  /home/fred/this.txt
+  /home/fred/yon/glorious/file.txt
+  ...
+  > tfind //@bin                 # all binary files
+  /home/fred/java.class
+  /home/fred/c.o
+  /home/fred/and/another/c.o
+  ...
+  > tfind //@bin foo bar baz     # all binary files in the foo, bar, and baz directories
+  /home/fred/foo/java.class
+  /home/fred/bar/c.o
+  /home/fred/baz/parrot.pbc
+  ...
+  > tfind //Some/Perl/Module.pm  # Some::Perl::Module
+  /home/fred/perl5/lib/Some/Perl/Module.pm
+  > tfind --help                 # usage info
+  ...
+
+=head1 DESCRIPTION
+
+The C<tfind> utility applies TPath expressions to directory hierarchies to find files. It
+expects a TPath expression and zero or more directories (or files). If no directory is
+supplied, it uses the current directory. It's options are minimal. For option details, type
+
+  tfind --help
+
+Most information will be supplied via the expression, not options. For the available attributes,
+see L<TPath::Attributes::Standard> and L<TPath::Forester::File::Attributes>.
+
+=head1 SEE ALSO
+
+L<TPath>.
+
+=cut
+
+$main::VERSION ||= 0.0001;
+
+use v5.10;
+use strict;
+use warnings;
+use Getopt::Long::Descriptive;
+use Pod::Usage;
+use Cwd;
+
+my ( $opt, $usage ) = describe_options(
+    '%c %o <path> [<dir>+]',
+    [ 'help|h|?',  'print usage information' ],
+    [ 'version|v', 'print program version' ]
+);
+pod2usage(
+    -message  => $usage->text,
+    -verbose  => 99,
+    -sections => 'SYNOPSIS|DESCRIPTION|SEE ALSO'
+  ),
+  exit
+  if $opt->help;
+say("tpath version $main::VERSION"), exit if $opt->version;
+
+require TPath::Forester::File;
+
+my ( $path, @directories ) = @ARGV;
+error('no path expression provided') unless $path;
+eval { $path = TPath::Forester::File::tff()->path($path) };
+error($@) if $@;
+
+push @directories, getcwd unless @directories;
+my %files;
+for my $d (@directories) {
+    my @files = $path->select($d);
+    for my $f (@files) {
+        print $f, "\n" unless $files{$f};
+        $files{$f} = 1;
+    }
+}
+
+sub error {
+    my $msg  = shift;
+    my $body = $usage->text;
+    print(<<END), exit;
+$msg
+
+$body
+END
+}

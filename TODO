@@ -1,0 +1,13 @@
+Key
+ . = still to do
+ - = discarded
+ * = completed
+
+* make TPath::Forester::File::Node to represent files
+* make file find utility
+
+Attic
+-----
+
+Completed TODO items kept around as curios.
+
