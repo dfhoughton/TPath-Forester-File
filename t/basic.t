@@ -47,12 +47,9 @@ my @files;
 
 my $a = tff->wrap('a');
 
-tff->path('//@f[@T & @log(@name, @enc, @exec("cat _"))]')->select($a);
-
 @files = tff->path('//@bin')->select($a);
 is @files, 2, 'found right number of binary files';
-is join( '', sort map { $_->name } @files ), 'bf',
-  'found the correct files';
+is join( '', sort map { $_->name } @files ), 'bf', 'found the correct files';
 
 @files = tff->path('//@B')->select($a);
 is @files, 6, 'found right number of -B files';
@@ -95,6 +92,43 @@ TODO: {
     is @files, 1, 'found right number of files containing a ç';
     is @files && $files[0]->name, 'g', 'found correct file containing ç';
 }
+
+@files = tff->path( '//*[@oid = ' . $< . ']' )->select($a);
+is join( '', sort map { $_->name } @files ), 'abcdefgh', '@oid works';
+
+my $gid = ( split / /, $( )[0];
+@files = tff->path( '//*[@gid = ' . $gid . ']' )->select($a);
+is join( '', sort map { $_->name } @files ), 'abcdefgh', '@gid works';
+
+@files =
+  tff->path( '//*[@user = "' . getpwuid($<) . '"]' )->select($a);
+is join( '', sort map { $_->name } @files ), 'abcdefgh', '@user works';
+
+my $group = getgrgid $gid;
+@files = tff->path( '//*[@group = "' . $group . '"]' )->select($a);
+is join( '', sort map { $_->name } @files ), 'abcdefgh', '@group works';
+
+@files = tff->path('//*[@oid = @me]')->select($a);
+is join( '', sort map { $_->name } @files ), 'abcdefgh', '@me works';
+
+@files = tff->path('//*[@name =~ "[aeiou]"]')->select($a);
+is join( '', sort map { $_->name } @files ), 'ae', '@name works';
+
+@files = tff->path('//@r')->select($a);
+is join( '', sort map { $_->name } @files ), 'abcdefgh',
+  '@r works';
+
+@files = tff->path('//@w')->select($a);
+is join( '', sort map { $_->name } @files ), 'abcdefgh',
+  '@w works';
+
+@files = tff->path('//@x')->select($a);
+is join( '', sort map { $_->name } @files ), 'ade',
+  '@x works';
+
+@files = tff->path('//*[@s = 0]')->select($a);
+is join( '', sort map { $_->name } @files ), 'h',
+  '@s works';
 
 chdir $dir;
 rmtree($td);

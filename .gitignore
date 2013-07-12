@@ -1,3 +1,5 @@
 .build/
 .*.swp
+.project
+.includepath
 *.tar.gz

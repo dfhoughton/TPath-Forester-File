@@ -12,13 +12,31 @@ use v5.10;
 use Moose::Role;
 use MooseX::MethodAttributes::Role;
 
+=head2 C<@text>
+
+The actual text of the file, if it is a text file, or C<undef>.
+
+=cut
+
 sub text : Attr {
     my ( undef, $ctx ) = @_;
     my $n = $ctx->n;
     return $n->text || undef;
 }
 
+=head2 C<@txt>
+
+An alias for C<@txt>.
+
+=cut
+
 sub txt : Attr { goto &T }
+
+=head2 C<@T>
+
+Whether the file is a text file according to C<TPath::Forester::File::Node::is_text()>.
+
+=cut
 
 sub T : Attr {
     my ( undef, $ctx ) = @_;
@@ -51,13 +69,14 @@ sub B : Attr {
     return $n->is_binary || undef;
 }
 
-=head2 C<@uid>
+=head2 C<@oid>
 
-File owner id.
+File owner id. This would be called C<@uid>, but that attribute name is already taken
+by the standard attribute library.
 
 =cut
 
-sub uid : Attr {
+sub oid : Attr {
     my ( undef, $ctx ) = @_;
     return $ctx->n->uid;
 }
@@ -77,7 +96,7 @@ sub fexists : Attr(exists) { goto &e }
 
 sub e : Attr {
     my ( undef, $ctx ) = @_;
-    $ctx->n->is_real || undef;
+    $ctx->n->real || undef;
 }
 
 sub s : Attr {
@@ -251,7 +270,7 @@ or
 
   //@f[@size > 12884901888]
 
-There is a slight efficiency cost in using C<@kb>, as the conversion will be done for
+There is a slight efficiency cost in using C<@gb>, as the conversion will be done for
 every file tested.
 
 =cut

@@ -161,7 +161,7 @@ sub _user {
     my $self = shift;
     state %map;
     my $uid  = $self->uid;
-    my $user = $map{$uid} //= getpwid($uid);
+    my $user = $map{$uid} //= getpwuid($uid);
     return $user;
 }
 
