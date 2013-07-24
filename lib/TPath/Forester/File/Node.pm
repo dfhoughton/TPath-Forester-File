@@ -36,7 +36,15 @@ Whether such a file exists in the file system.
 
 =cut
 
-has real => ( is => 'ro', isa => 'Bool', required => 1 );
+has real => ( is => 'ro', isa => 'Bool', required => 1, writer => '_real' );
+
+=attr broken
+
+True if C<stat> called on the file returns the empty list.
+
+=cut
+
+has broken => ( is => 'ro', isa => 'Bool', default => 0, writer => '_broken' );
 
 =attr name
 
@@ -104,7 +112,7 @@ has is_link => (
     default => sub {
         my $self = shift;
         return unless $self->real;
-        return Fcntl::S_ISLNK( $self->mode );
+        return -l $self;
     },
 );
 has is_binary => (
@@ -160,7 +168,7 @@ has user => ( is => 'ro', isa => 'Str', lazy => 1, builder => '_user' );
 sub _user {
     my $self = shift;
     state %map;
-    my $uid  = $self->uid;
+    my $uid = $self->uid;
     my $user = $map{$uid} //= getpwuid($uid);
     return $user;
 }
@@ -177,7 +185,7 @@ has group => ( is => 'ro', isa => 'Str', lazy => 1, builder => '_group' );
 sub _group {
     my $self = shift;
     state %map;
-    my $gid   = $self->gid;
+    my $gid = $self->gid;
     my $group = $map{$gid} //= getgrgid($gid);
     return $group;
 }
@@ -306,7 +314,9 @@ sub _encoding {
             default => sub {
                 my $self = shift;
                 return -1 unless $self->real;
-                return $self->stats->[$index];
+                my $stats = $self->stats;
+                return -1 unless $stats;
+                return $stats->[$index];
             }
         );
     }
@@ -396,7 +406,11 @@ has stats => (
     default => sub {
         my $self = shift;
         return undef unless $self->real;
-        return [ stat $self->stringification ];
+        my $s;
+        $s = [ stat $self->stringification ];
+        undef $s unless @$s;
+        $self->_real(0), $self->_broken(1) unless $s;
+        return $s;
     }
 );
 
@@ -414,20 +428,23 @@ sub to_string {
 sub _children {
     my $self = shift;
     return [] unless $self->real;
-    return [] if $self->is_link;
+    return [] if $self->is_link || $self->broken;
     return [] unless $self->is_directory;
-    opendir my $dh, $self->stringification;
-    my @children = File::Spec->no_upwards( readdir $dh );
-    return [
-        map {
-            TPath::Forester::File::Node->new(
-                name              => $_,
-                parent            => $self,
-                real              => 1,
-                encoding_detector => $self->encoding_detector,
-              )
-        } @children
-    ];
+    if ( opendir my $dh, $self->stringification ) {
+        my @children = File::Spec->no_upwards( readdir $dh );
+        return [
+            map {
+                TPath::Forester::File::Node->new(
+                    name              => $_,
+                    parent            => $self,
+                    real              => 1,
+                    encoding_detector => $self->encoding_detector,
+                  )
+            } @children
+        ];
+    }
+    $self->_broken(1);
+    return [];
 }
 
 # linear search for a child of the same name

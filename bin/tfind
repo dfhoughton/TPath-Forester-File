@@ -58,8 +58,10 @@ use Cwd;
 
 my ( $opt, $usage ) = describe_options(
     '%c %o <path> [<dir>+]',
-    [ 'help|h|?',  'print usage information' ],
-    [ 'version|v', 'print program version' ]
+    [ 'all|a'     => 'include hidden files and directories' ],
+    [ 'perl|p'    => 'include all the @INC directories' ],
+    [ 'help|h|?'  => 'print usage information' ],
+    [ 'version|v' => 'print program version' ]
 );
 pod2usage(
     -message  => $usage->text,
@@ -74,10 +76,13 @@ require TPath::Forester::File;
 
 my ( $path, @directories ) = @ARGV;
 error('no path expression provided') unless $path;
-eval { $path = TPath::Forester::File::tff()->path($path) };
+my $arborist = TPath::Forester::File::tff();
+$arborist->add_test( sub { $_[1]->name !~ /^\./ } ) unless $opt->all;
+eval { $path = $arborist->path($path) };
 error($@) if $@;
 
 push @directories, getcwd unless @directories;
+push @directories, @INC if $opt->perl;
 my %files;
 for my $d (@directories) {
     my @files = $path->select($d);

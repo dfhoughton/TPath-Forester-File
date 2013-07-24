@@ -296,7 +296,7 @@ The file (or directory) name.
 
 sub name : Attr { $_[1]->n->name }
 
-=head1 C<@encoding>
+=head1 C<@encoding>, C<@enc>
 
 Encoding detected, if any.
 
@@ -309,6 +309,16 @@ sub encoding : Attr {
 
 sub enc : Attr {
     goto &encoding;
+}
+
+=attr C<@broken>
+
+True if C<stat> returns the empty list for this file.
+
+=cut
+
+sub broken : Attr {
+    $_[1]->n->broken || undef;
 }
 
 1;
