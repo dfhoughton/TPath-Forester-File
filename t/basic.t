@@ -115,20 +115,49 @@ is join( '', sort map { $_->name } @files ), 'abcdefgh', '@me works';
 is join( '', sort map { $_->name } @files ), 'ae', '@name works';
 
 @files = tff->path('//@r')->select($a);
-is join( '', sort map { $_->name } @files ), 'abcdefgh',
-  '@r works';
+is join( '', sort map { $_->name } @files ), 'abcdefgh', '@r works';
 
 @files = tff->path('//@w')->select($a);
-is join( '', sort map { $_->name } @files ), 'abcdefgh',
-  '@w works';
+is join( '', sort map { $_->name } @files ), 'abcdefgh', '@w works';
 
 @files = tff->path('//@x')->select($a);
-is join( '', sort map { $_->name } @files ), 'ade',
-  '@x works';
+is join( '', sort map { $_->name } @files ), 'ade', '@x works';
 
 @files = tff->path('//*[@s = 0]')->select($a);
-is join( '', sort map { $_->name } @files ), 'h',
-  '@s works';
+is join( '', sort map { $_->name } @files ), 'h', '@s works';
+
+file_tree(
+    {
+        name     => 'b',
+        children => [
+            {
+                name => 'c.txt',
+                text => "foo bar baz"
+            },
+            {
+                name     => 'd',
+                children => [
+                    {
+                        name => 'e.txt',
+                        text => "foo bar baz"
+                    },
+                    { name => 'ftxt', binary => 1 },
+                    {
+                        name => 'g',
+                        text => "foo bar baz"
+                    }
+                ]
+            }
+        ],
+    }
+);
+
+tff->clean;
+my $b = tff->wrap('b');
+
+@files = tff->path('//@ext("txt")')->select($b);
+is @files, 2, 'found right number of files with the @txt("txt")';
+is join( ' ', sort map { $_->name } @files ), 'c.txt e.txt', 'found the correct files';
 
 chdir $dir;
 rmtree($td);

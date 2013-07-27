@@ -303,7 +303,7 @@ Encoding detected, if any.
 =cut
 
 sub encoding : Attr {
-    my (undef, $ctx) = @_;
+    my ( undef, $ctx ) = @_;
     $ctx->n->encoding;
 }
 
@@ -319,6 +319,30 @@ True if C<stat> returns the empty list for this file.
 
 sub broken : Attr {
     $_[1]->n->broken || undef;
+}
+
+=attr C<@ext('txt')>
+
+True if the file has the given extension. The following are equivalent
+
+  //@ext('txt')
+  //~\.txt$~
+  //*[@name =| '.txt']
+
+The latter is second shorter but also more cryptic. In its implementation
+C<@ext> is more like the last expression, but it applies the test on
+selection rather than filtering.
+
+=cut
+
+sub ext : Attr {
+    my ( undef, $ctx, $ext ) = @_;
+    return undef unless $ext;
+    $ext = '.' . $ext;
+    my $n = $ctx->n->name;
+    my $i = index $n, $ext;
+    return undef unless $i > 0;
+    return $i + length $ext == length $n ? 1 : undef;
 }
 
 1;
