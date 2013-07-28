@@ -25,7 +25,10 @@
   /home/fred/bar/c.o
   /home/fred/baz/parrot.pbc
   ...
-  > tfind //Some/Perl/Module.pm  # Some::Perl::Module
+  > tfind //Some/Perl/Module.pm         # Some::Perl::Module
+  /home/fred/perl5/lib/Some/Perl/Module.pm
+  > tfind --perl //Some/Perl/Module.pm  # Some::Perl::Module in ~ or @INC
+  /usr/lib/perl5/Some/Perl/Module.pm
   /home/fred/perl5/lib/Some/Perl/Module.pm
   > tfind --help                 # usage info
   ...
@@ -38,16 +41,24 @@ supplied, it uses the current directory. It's options are minimal. For option de
 
   tfind --help
 
-Most information will be supplied via the expression, not options. For the available attributes,
-see L<TPath::Attributes::Standard> and L<TPath::Forester::File::Attributes>.
+Most information will be supplied via the expression, not options.
+
+Unless the C<--all> flag is specified, files and directories whose name begins
+with a dot will be ignored.
 
 =head1 SEE ALSO
 
-L<TPath>.
+L<TPath>, L<TPath::Attributes::Standard>, L<TPath::Forester::File::Attributes>.
+You should be able to obtain this information using either C<perldoc> or C<man>:
+
+  man TPath
+  perldoc TPath::Attributes::Standard
+
+The first of these, L<TPath>, will describe the syntax of tpath expressions. The
+second two will list the attributes available for expressions understood by
+C<tfind>.
 
 =cut
-
-$main::VERSION ||= 0.0001;
 
 use v5.10;
 use strict;
@@ -58,8 +69,9 @@ use Cwd;
 
 my ( $opt, $usage ) = describe_options(
     '%c %o <path> [<dir>+]',
-    [ 'all|a'     => 'include hidden files and directories' ],
-    [ 'perl|p'    => 'include all the @INC directories' ],
+    [ 'all|a'  => 'include hidden files and directories' ],
+    [ 'perl|p' => 'include all the @INC directories' ],
+    [],
     [ 'help|h|?'  => 'print usage information' ],
     [ 'version|v' => 'print program version' ]
 );
@@ -70,9 +82,8 @@ pod2usage(
   ),
   exit
   if $opt->help;
-say("tpath version $main::VERSION"), exit if $opt->version;
-
 require TPath::Forester::File;
+say("tpath version $TPath::Forester::File::VERSION"), exit if $opt->version;
 
 my ( $path, @directories ) = @ARGV;
 error('no path expression provided') unless $path;

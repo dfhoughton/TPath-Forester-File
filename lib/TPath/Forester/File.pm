@@ -2,6 +2,8 @@ package TPath::Forester::File;
 
 # ABSTRACT: L<TPath::Forester> that understands file systems
 
+$TPath::Forester::File::VERSION ||= .001; # Dist::Zilla will automatically update this
+                                                                                
 use v5.10;
 use Moose;
 use Moose::Exporter;
