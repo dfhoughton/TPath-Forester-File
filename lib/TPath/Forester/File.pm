@@ -4,7 +4,7 @@ package TPath::Forester::File;
 
 $TPath::Forester::File::VERSION ||= .001; # Dist::Zilla will automatically update this
                                                                                 
-use v5.10;
+use v5.12;
 use Moose;
 use Moose::Exporter;
 use namespace::autoclean;
