@@ -1,6 +1,7 @@
 Revision history for TPath::Forester::File
 
 {{$NEXT}}
+  * split tfind off into its own project
 
 0.002     2013-09-08 16:43:10 America/New_York
   * fixed pre-requisites

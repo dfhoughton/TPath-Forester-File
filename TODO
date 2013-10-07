@@ -7,6 +7,7 @@ Key
 * make file find utility
 . get encoding detection to work
 . put 'extends' in BEGIN block
+. make the access checking stuff conditional that breaks this for Perls > 5.10
 
 Attic
 -----

@@ -95,11 +95,15 @@ has roots => (
 =method clean
 
 C<clean> purges all cached information about the
-file system. Because nodes only know their parents through weak references. If
+file system. Because nodes only know their parents through weak references, if
 you clean the cache, all ancestor nodes which are not themselves descendants of
 some other node whose reference is still retained will be garbage collected.
 
-TODO: explain the necessity of this method.
+This method is useful because to reduce file system thrash file meta-data is cached
+aggressively. To facilitate wrapping, this caching is done in the forester itself
+rather than the index. But this means that as the file system changes its cached
+representation can grow out of sync. So if you know or fear files have changed,
+you will want to clean the forester.
 
 =cut
 

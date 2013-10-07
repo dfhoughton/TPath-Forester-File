@@ -28,7 +28,7 @@ require Cwd;
 require Encode;
 
 use overload '""' => sub { shift->stringification };
-use overload '==' => sub { goto &equals };
+use overload '<=>' => \&compare, 'cmp' => \&compare;
 
 =attr real
 
@@ -456,18 +456,19 @@ sub _find_child {
     return undef;
 }
 
-=method equals($other)
+=method compare($other, [$swapped])
 
-Object equality method. This method requires that the other be an object of type
-L<TPath::Forester::File::Node> and that it stringify the same. It is used by the
-overloaded C<==> operator as well.
+Object comparison method. This method requires that the other be an object of type
+L<TPath::Forester::File::Node>, sorting such objects before all else. Otherwise it
+uses <cmp> on the stringification of the two objects.
 
 =cut
 
-sub equals {
-    my ( $self, $other ) = @_;
-    return unless blessed $other && $other->isa('TPath::Forester::File::Node');
-    return $self eq $other;
+sub compare {
+    my ( $self, $other, $swapped ) = @_;
+    return ( $swapped ? 1 : -1 )
+      unless blessed $other && $other->isa('TPath::Forester::File::Node');
+    return "$self" cmp "$other";
 }
 
 no Moose;
